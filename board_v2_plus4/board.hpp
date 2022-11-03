@@ -63,7 +63,10 @@ namespace board {
 	static constexpr Pad xpt2046_cs = PB7;
 	static constexpr Pad xpt2046_irq = PB8;
 
-	static constexpr Pad LEVER_LEFT = PB11;
+	static constexpr Pad USART_TX = PB10;
+	static constexpr Pad USART_RX = PB11;
+
+	//static constexpr Pad LEVER_LEFT = PB11;
 	static constexpr Pad LEVER_CENTER = PB12;
 	static constexpr Pad LEVER_RIGHT = PB13;
 	static constexpr bool LEVER_POLARITY = false; // pin level when lever/button is pressed

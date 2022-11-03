@@ -34,9 +34,9 @@
 #include <board.hpp>
 #include "ili9341.hpp"
 #include "plot.hpp"
-#include "uihw.hpp"
-#include "ui.hpp"
-#include "uihw.hpp"
+//#include "uihw.hpp"
+//#include "ui.hpp"
+//#include "uihw.hpp"
 #include "common.hpp"
 #include "globals.hpp"
 #include "synthesizers.hpp"
@@ -275,7 +275,7 @@ extern "C" void tim1_up_isr() {
 }
 extern "C" void tim2_isr() {
 	TIM2_SR = 0;
-	UIHW::checkButtons();
+	//UIHW::checkButtons(); //buttons are disabled
 }
 
 static int si5351_doUpdate(uint32_t freqHz) {
@@ -463,7 +463,7 @@ void adc_read(volatile uint16_t*& data, int& len, int modulus=1) {
 	if(lastIndex >= bufWords) lastIndex = 0;
 }
 
-
+/*
 static void lcd_and_ui_setup() {
 	lcd_spi_init();
 
@@ -551,13 +551,14 @@ static void lcd_and_ui_setup() {
 	uiEnableProcessing();
 
 	// when the UI hardware emits an event, forward it to the UI code
-	UIHW::emitEvent = [](UIHW::UIEvent evt) {
-		// process the event on main thread; we are currently in interrupt context.
-		UIActions::enqueueEvent([evt]() {
-			ui_process(evt);
-		});
-	};
+	// UIHW::emitEvent = [](UIHW::UIEvent evt) {
+	// 	// process the event on main thread; we are currently in interrupt context.
+	// 	UIActions::enqueueEvent([evt]() {
+	// 		ui_process(evt);
+	// 	});
+	// };
 }
+*/
 
 static void enterUSBDataMode() {
 	usbDataMode = true;
@@ -1625,40 +1626,40 @@ int main(void) {
 	nvic_set_priority(NVIC_USB_HP_CAN_TX_IRQ, 0xf0);
 
 	// set up lcd and hook up UI events
-	lcd_and_ui_setup();
+	//lcd_and_ui_setup();
 
 	// initialize UI hardware (buttons)
-	UIHW::init(tim2Period);
+	//UIHW::init(tim2Period);
 
 	// this timer is used by UI hardware to perform button ticks
-	ui_timer_setup();
+	//ui_timer_setup();
 
 	// work around spurious ui events at startup
-	delay(50);
-	while(eventQueue.readable())
-		eventQueue.dequeue();
+	//delay(50);
+	//while(eventQueue.readable())
+	//	eventQueue.dequeue();
 
-	UIActions::cal_reset();
+	//UIActions::cal_reset();
 
 	flash_config_recall();
 	// Load 0 slot
-	UIActions::cal_reset();
+	//UIActions::cal_reset();
 	flash_caldata_recall(0);
-	if(config.ui_options & UI_OPTIONS_FLIP)
-		ili9341_set_flip(true, true);
+	//if(config.ui_options & UI_OPTIONS_FLIP)
+	//	ili9341_set_flip(true, true);
 
 	printk("SN: %08x-%08x-%08x\n", deviceID[0], deviceID[1], deviceID[2]);
 
 	// show dmesg and wait for user input if there is an important error
 	if(shouldShowDmesg) {
 		printk1("Touch anywhere to continue...\n");
-		show_dmesg();
+		//show_dmesg();
 	}
 
 	printk("xtal freq %d.%03d MHz\n", (xtalFreqHz/1000000), ((xtalFreqHz/1000) % 1000));
 
 	//debug_plot_markmap();
-	UIActions::printTouchCal();
+	//UIActions::printTouchCal();
 
 
 	bool si5351failed = false;
@@ -1695,9 +1696,9 @@ int main(void) {
 		printk1("ERROR: si5351 init failed\n");
 		printk1("Touch anywhere to continue...\n");
 		current_props._frequency0 = 200000000;
-		show_dmesg();
+		//show_dmesg();
 	}
-    UIActions::rebuild_bbgain();
+    //UIActions::rebuild_bbgain();
 #ifdef HAS_SELF_TEST
 	if(SelfTest::shouldEnterSelfTest()) {
 		SelfTest::performSelfTest(vnaMeasurement);
@@ -1705,9 +1706,9 @@ int main(void) {
 #endif
 
 	usbTxQueueRPos = usbTxQueueWPos;
-	setVNASweepToUI();
+	//setVNASweepToUI();
 
-	redraw_frame();
+	//redraw_frame();
 
 	bool testSG = false;
 
@@ -1734,7 +1735,7 @@ int main(void) {
 
 			// display "usb mode" screen
 			if(!lastUSBDataMode) {
-				ui_mode_usb();
+				//ui_mode_usb();
 				setVNASweepToUSB();
 			}
 			lastUSBDataMode = usbDataMode;
@@ -1745,10 +1746,10 @@ int main(void) {
 		} else {
 			if(lastUSBDataMode) {
 				// exiting usb data mode
-				ui_mode_normal();
-				redraw_frame();
-				request_to_redraw_grid();
-				setVNASweepToUI();
+				//ui_mode_normal();
+				//redraw_frame();
+				//request_to_redraw_grid();
+				//setVNASweepToUI();
 			}
 		}
 		lastUSBDataMode = usbDataMode;
@@ -1759,29 +1760,32 @@ int main(void) {
 		// when we are in USB mode.
 		myassert(!usbDataMode);
 
+		/*
 		if(sweep_enabled) {
 			if(processDataPoint()) {
 				// a full sweep has completed
 				if ((domain_mode & DOMAIN_MODE) == DOMAIN_TIME) {
-					plot_into_index(measured);
-					ui_marker_track();
+					//plot_into_index(measured);
+					//ui_marker_track();
 					if(!lcdInhibit) draw_all(true);
 					continue;
 				}
 			}
 		}
-
+		*/
 		// if we have no pending events, use idle cycles to refresh the graph
+		/*
 		if(!eventQueue.readable()) {
 			if(sweep_enabled) {
 				if((domain_mode & DOMAIN_MODE) == DOMAIN_FREQ) {
 					plot_into_index(measured);
-					ui_marker_track();
+					//ui_marker_track();
 				}
 			}
 			if(!lcdInhibit) draw_all(true);
 			continue;
 		}
+		*/
 		auto callback = eventQueue.read();
 		eventQueue.dequeue();
 		if(!callback)
@@ -1867,6 +1871,8 @@ extern "C" {
 }
 
 
+
+
 // nanovna UI callbacks
 namespace UIActions {
 
@@ -1882,7 +1888,7 @@ namespace UIActions {
 			vnaMeasurement.nPeriodsMultiplier = current_props._avg;
 		#endif
 			current_props._cal_status |= (1 << type);
-			ui_cal_collected();
+			//ui_cal_collected();
 		};
 		uint32_t avgMult = 2;
 	#if BOARD_REVISION >= 4
